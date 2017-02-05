@@ -1,5 +1,5 @@
-`--[[
-Copyright © 2016, <> of <>
+--[[
+Copyright © 2016, Ivaar
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -10,14 +10,14 @@ modification, are permitted provided that the following conditions are met:
 * Redistributions in binary form must reproduce the above copyright
   notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
-* Neither the name of <<ADDON_NAME>>nor the
+* Neither the name of SkillChains nor the
   names of its contributors may be used to endorse or promote products
   derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <> BE LIABLE FOR ANY
+DISCLAIMED. IN NO EVENT SHALL Ivaar BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -25,10 +25,21 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ]]
-_addon.author = 'Ivaar'
+
+
+_addon.author = 'Ivaar,Sammeh(Mod)'
 _addon.command = 'sc'
 _addon.name = 'SkillChains'
-_addon.version = '1.15.07.05'
+_addon.version = '1.5'
+
+
+-- Sammeh(Quetz) Mods.
+-- 1.2 Added Pet Ready Moves
+-- 1.3 Color coding Pet Moves vs WS
+-- 1.3.1 bugfix for non-pet jobs
+-- 1.3.2 Add trigger 'hidews' to Hide main/ranged WS and only show pet jobs.  //sc hidews
+-- 1.4 Add colors to WS properties and Magic Bursts
+-- 1.5 Fix - broke jobs other than BST when coloring bst stuff ;)
 
 texts = require('texts')
 packets = require('packets')
@@ -38,8 +49,9 @@ res = require('resources')
 default = {
     ws=true,
     ma=true,
+	hidews=true, -- only used to hide ws if main job == BST
     display = {
-        text={size=10,font='Consolas'},
+        text={size=8,font='Consolas'},
         pos={x=0,y=0},
         },
     }
@@ -79,6 +91,30 @@ skillchains = L{
     [397] = 'Detonation',
     [398] = 'Impaction',
     }
+
+colors = {
+	--['Light'] = '\\cs(255,255,255)',
+    ['Impaction'] = '\\cs(255,0,255)',
+	['Lightning'] = '\\cs(255,0,255)',
+	['Darkness'] = '\\cs(0,0,204)',
+    ['Gravitation'] = '\\cs(102,51,0)',
+    ['Fragmentation'] = '\\cs(250,156,247)',
+    ['Distortion'] = '\\cs(51,153,255)',
+    ['Compression'] = '\\cs(0,0,204)',
+	['Dark'] = '\\cs(0,0,204)',
+    ['Induration'] = '\\cs(0,255,255)',
+	['Ice'] = '\\cs(0,255,255)',
+    ['Reverberation'] = '\\cs(0,0,255)',
+	['Water'] = '\\cs(0,0,255)',
+    ['Transfixion'] = '\\cs(255,255,255)',
+    ['Scission'] = '\\cs(153,76,0)',
+	['Stone'] = '\\cs(153,76,0)',
+    ['Detonation'] = '\\cs(102,255,102)',
+	['Wind'] = '\\cs(102,255,102)',
+    ['Fusion'] = '\\cs(255,102,102)',
+    ['Liquefaction'] = '\\cs(255,0,0)',
+	['Fire'] = '\\cs(255,0,0)',
+}
     
 elements = L{
     [0]={mb='Fire',sc='Liquefaction'},
@@ -289,6 +325,53 @@ npc_move = L{
     [3941] = {id=3941,en='Pecking Flurry',skillchain_a='Transfixion',skillchain_b=''},
     [3942] = {id=3942,en='Sickle Slash',skillchain_a='Transfixion',skillchain_b=''},
     }
+	
+pet_moves = T{
+    [3840] = {id=3840,en='Foot Kick',skillchain_a='Reverberation',skillchain_b=''},
+    [3842] = {id=3842,en='Whirl Claws',skillchain_a='Impaction',skillchain_b=''},
+    [3843] = {id=3843,en='Head Butt',skillchain_a='Detonation',skillchain_b=''},
+    [3845] = {id=3845,en='Wild Oats',skillchain_a='Transfixion',skillchain_b=''},
+    [3846] = {id=3846,en='Leaf Dagger',skillchain_a='Scission',skillchain_b=''},
+    [3849] = {id=3849,en='Razor Fang',skillchain_a='Impaction',skillchain_b=''},
+    [3850] = {id=3850,en='Claw Cyclone',skillchain_a='Scission',skillchain_b=''},
+    [3851] = {id=3851,en='Tail Blow',skillchain_a='Impaction',skillchain_b=''},
+    [3853] = {id=3853,en='Blockhead',skillchain_a='Reverberation',skillchain_b=''},
+    [3854] = {id=3854,en='Brain Crush',skillchain_a='Liquefaction',skillchain_b=''},
+    [3857] = {id=3857,en='Lamb Chop',skillchain_a='Impaction',skillchain_b=''},
+    [3859] = {id=3859,en='Sheep Charge',skillchain_a='Reverberation',skillchain_b=''},
+    [3863] = {id=3863,en='Big Scissor',skillchain_a='Scission',skillchain_b=''},
+    [3866] = {id=3866,en='Needleshot',skillchain_a='Transfixion',skillchain_b=''},
+    [3867] = {id=3867,en='??? Needles',skillchain_a='Darkness',skillchain_b='Fragmentation'},
+    [3868] = {id=3868,en='Frog Kick',skillchain_a='Compression',skillchain_b=''},
+    [3875] = {id=3875,en='Power Attack',skillchain_a='Induration',skillchain_b=''},
+    [3877] = {id=3877,en='Rhino Attack',skillchain_a='Detonation',skillchain_b=''},
+    [3885] = {id=3885,en='Mandibular Bite',skillchain_a='Detonation',skillchain_b=''},
+    [3891] = {id=3891,en='Nimble Snap',skillchain_a='Impaction',skillchain_b=''},
+    [3892] = {id=3892,en='Cyclotail',skillchain_a='Impaction',skillchain_b=''},
+    [3894] = {id=3894,en='Double Claw',skillchain_a='Liquefaction',skillchain_b=''},
+    [3895] = {id=3895,en='Grapple',skillchain_a='Reverberation',skillchain_b=''},
+    [3897] = {id=3897,en='Spinning Top',skillchain_a='Impaction',skillchain_b=''},
+    [3900] = {id=3900,en='Suction',skillchain_a='Compression',skillchain_b=''},
+    [3904] = {id=3904,en='Sudden Lunge',skillchain_a='Impaction',skillchain_b=''},
+    [3905] = {id=3905,en='Spiral Spin',skillchain_a='Scission',skillchain_b=''},
+    [3909] = {id=3909,en='Scythe Tail',skillchain_a='Liquefaction',skillchain_b=''},
+    [3910] = {id=3910,en='Ripper Fang',skillchain_a='Induration',skillchain_b=''},
+    [3911] = {id=3911,en='Chomp Rush',skillchain_a='Darkness',skillchain_b='Gravitation'},
+    [3915] = {id=3915,en='Back Heel',skillchain_a='Reverberation',skillchain_b=''},
+    [3919] = {id=3919,en='Tortoise Stomp',skillchain_a='Liquefaction',skillchain_b=''},
+    [3922] = {id=3922,en='Wing Slap',skillchain_a='Liquefaction',skillchain_b='Scission'},
+    [3923] = {id=3923,en='Beak Lunge',skillchain_a='Scission',skillchain_b=''},
+    [3925] = {id=3925,en='Recoil Dive',skillchain_a='Transfixion',skillchain_b=''},
+    [3927] = {id=3927,en='Sensilla Blades',skillchain_a='Scission',skillchain_b=''},
+    [3928] = {id=3928,en='Tegmina Buffet',skillchain_a='Distortion',skillchain_b='Detonation'},
+    [3930] = {id=3930,en='Swooping Frenzy',skillchain_a='Fusion',skillchain_b='Reverberation'},
+    [3931] = {id=3931,en='Sweeping Gouge',skillchain_a='Induration',skillchain_b=''},
+    [3933] = {id=3933,en='Pentapeck',skillchain_a='Distortion',skillchain_b=''},
+    [3934] = {id=3934,en='Tickling Tendrils',skillchain_a='Impaction',skillchain_b=''},
+    [3938] = {id=3938,en='Somersault',skillchain_a='Compression',skillchain_b=''},
+    [3941] = {id=3941,en='Pecking Flurry',skillchain_a='Transfixion',skillchain_b=''},
+    [3942] = {id=3942,en='Sickle Slash',skillchain_a='Transfixion',skillchain_b=''},
+}
 
 function apply_props(packet,abil,ability)
     if not abil then return end
@@ -347,7 +430,7 @@ function burst_results(reson)
 end
 
 function chain_results(reson)
-    local skills,spells = {},{}
+    local skills,spells,petskills,petskills_ext = {},{},{},{}
     local m_job = windower.ffxi.get_player().main_job
     local abilities = windower.ffxi.get_abilities()
     local spell_table,sch
@@ -355,6 +438,8 @@ function chain_results(reson)
         spell_table = blood_pacts
     elseif m_job == 'BLU' then
         spell_table = blue_magic
+	elseif m_job == 'BST' then
+		spell_table = pet_moves
     elseif m_job == 'SCH' and settings.ma then
         sch = true
     end
@@ -388,18 +473,67 @@ function chain_results(reson)
                     end
                 end
                 if settings.ws then
-                    for i,t in ipairs(abilities.weapon_skills) do
-                        local ws = res.weapon_skills[t]
-                        if ws and S{ws.skillchain_a,ws.skillchain_b,ws.skillchain_c}:contains(k) and
-                        (not skills[ws.en] or skills[ws.en].lvl < lvl) then
-                            skills[ws.en] = {lvl=lvl,prop=v}
-                        end
-                    end
+					if m_job == 'BST' and not settings.hidews then	
+						for i,t in ipairs(abilities.weapon_skills) do
+							local ws = res.weapon_skills[t]
+							if ws and S{ws.skillchain_a,ws.skillchain_b,ws.skillchain_c}:contains(k) and
+							(not skills[ws.en] or skills[ws.en].lvl < lvl) then
+								skills[ws.en] = {lvl=lvl,prop=v}
+							end
+						end
+					else
+						for i,t in ipairs(abilities.weapon_skills) do
+							local ws = res.weapon_skills[t]
+							if ws and S{ws.skillchain_a,ws.skillchain_b,ws.skillchain_c}:contains(k) and
+							(not skills[ws.en] or skills[ws.en].lvl < lvl) then
+								skills[ws.en] = {lvl=lvl,prop=v}
+							end
+						end
+					end
+					if m_job == 'BST' then
+						petskills = pet_skills()
+						for index,value in pairs(petskills) do
+							for index2,value2 in pairs(pet_moves) do
+								if value == value2.en then
+									if S{value2.skillchain_a,value2.skillchain_b}:contains(k) then
+										petskills_ext[value] = {lvl=lvl,prop=v}
+									end
+								end
+							
+							end
+						end
+					end
                 end
             end
         end
     end
-    return {[1]=skills,[2]=spells}
+    return {[1]=skills,[2]=spells,[3]=petskills_ext}
+end
+
+function pet_skills()
+	local abilities = windower.ffxi.get_abilities()
+	local petskills = {}
+	pet = windower.ffxi.get_mob_by_index(windower.ffxi.get_mob_by_target('pet').index or 0)
+	if pet then 
+		for key,ability in pairs(abilities.job_abilities) do
+			local ability_en = res.job_abilities[ability].en
+			local ability_targets = res.job_abilities[ability].targets
+			local ability_type = res.job_abilities[ability].type
+			local ability_charges = res.job_abilities[ability].mp_cost
+			if ability_targets.Self == true and ability_type == 'Monster' then
+				table.insert(petskills, ability_en)
+			end
+		end
+	end
+	return petskills
+end
+
+function search_pet_moves(k)
+	for i,v in pairs(pet_moves) do
+		if v.en == k then
+			return true
+		end
+	end
 end
 
 function display_results(targ)
@@ -410,7 +544,11 @@ function display_results(targ)
         for i,t in ipairs(results) do
             for k,v in pairs(t) do
                 if v and v.lvl == x then
-                    str = '\n %s  >> Lv.%d %s ':format(k,v.lvl,v.prop)..str
+					if search_pet_moves(k) then 
+						str = '\n \\cs(0,255,0)%s\\cs(255,255,255)  >> Lv.%d %s ':format(k,v.lvl,v.prop)..str
+					else
+						str = '\n %s  >> Lv.%d %s ':format(k,v.lvl,v.prop)..str
+					end
                 end
             end
         end
@@ -436,6 +574,9 @@ windower.register_event('prerender', function()
         elseif now-resonating[targ.id].timer < 10 then
             disp_info = ' GO! %s \n':format(10-(now-resonating[targ.id].timer))..disp_info
         end
+		for i,v in pairs(colors) do
+			disp_info = string.gsub(disp_info, i, v..i..'\\cs(255,255,255)')
+		end
         skill_props:text(disp_info)
         skill_props:show()
     elseif not visible then
@@ -459,8 +600,10 @@ windower.register_event('incoming chunk', function(id,original,modified,injected
                 abil = blue_magic[packet.Param]
                 apply_props(packet,abil,'blue_magic')
             elseif abil and abil.skill == 36 then
+				if elements[abil.element] then 
                 abil.skillchain_a = elements[abil.element].sc
                 apply_props(packet,abil,'spells')
+				end
             end
         -- Job Ability
         elseif packet['Category'] == 6 then
@@ -502,7 +645,7 @@ windower.register_event('addon command', function(...)
             return
         end
         visible = false
-    elseif S{'ma','ws'}:contains(commands[1]) then
+    elseif S{'ma','ws','hidews'}:contains(commands[1]) then
         if not commands[2] then
             settings[commands[1]] = not settings[commands[1]]
         elseif commands[2] == 'off' then
@@ -510,7 +653,8 @@ windower.register_event('addon command', function(...)
         elseif commands[2] == 'on' then
             settings[commands[1]] = true
         end
-        windower.add_to_chat(207, '%s will %s be displayed.':format(commands[1] == 'ma' and 'Magic' or 'Weapon Skills',settings[commands[1]] and 'now' or 'NOT'))
+        --windower.add_to_chat(207, '%s will %s be displayed.':format(commands[1] == 'ma' and 'Magic' or 'Weapon Skills',settings[commands[1]] and 'now' or 'NOT'))
+		windower.add_to_chat(207, '%s: %s.':format(commands[1],settings[commands[1]] and 'TRUE' or 'FALSE'))
     elseif commands[1] == 'eval' then
         assert(loadstring(table.concat(commands, ' ',2)))()
     end
